@@ -5,7 +5,7 @@ from sqlalchemy import (
 )
 
 import os
-
+import tempfile
 import unittest
 
 class TestSimple(unittest.TestCase):
@@ -61,34 +61,33 @@ class TestSimple(unittest.TestCase):
         self.assertEqual(url,'postgresql+psycopg2://user:pass123@localhost/database')
 
     def test_connect_sqlite(self):
-
-        tmp_path = f".unittest_data"
-        os.makedirs(tmp_path,exist_ok=True)
-
-        client = DBConnector(
-            dialect='sqlite',
-            driver='',
-            username='',
-            password='',
-            host='',
-            port='',
-            database=f'{tmp_path}/sqlite.db'
-        )
-        engine = client._make_db_engine()
-        with engine.connect() as conn:
-            result = conn.execute(text("select 'hello world';")).fetchall()
-            print(result)
-            conn.close()
         
-        engine.dispose()
+        with tempfile.TemporaryDirectory() as tmp_path:
 
-        files = os.listdir(f"{tmp_path}")
-        if len(files)>0:
-            dbname = files[0]
-        else:
-            dbname = 'nodb'
+            client = DBConnector(
+                dialect='sqlite',
+                driver='',
+                username='',
+                password='',
+                host='',
+                port='',
+                database=f'{tmp_path}/sqlite.db'
+            )
+            engine = client._make_db_engine()
+            with engine.connect() as conn:
+                result = conn.execute(text("select 'hello world';")).fetchall()
+                print(result)
+                conn.close()
+            
+            engine.dispose()
 
-        os.system(f"rm -rf {tmp_path}")
+            files = os.listdir(f"{tmp_path}")
+            if len(files)>0:
+                dbname = files[0]
+            else:
+                dbname = 'nodb'
+
+            os.system(f"rm -rf {tmp_path}")
 
         self.assertEqual(dbname,'sqlite.db')
 
