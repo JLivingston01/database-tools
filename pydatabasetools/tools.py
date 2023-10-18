@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+import os
 
 class DBConnector:
 
@@ -40,10 +41,17 @@ class DBConnector:
 
         return url
 
-    def _make_db_engine(self):
+    def _make_db_engine(self,echo:bool = False):
 
         url = self._create_url()
-        engine = create_engine(url)
-        self.engine = engine
+        engine = create_engine(url,echo=echo)
 
         return engine
+    
+    def _make_db_connection(self,echo:bool = False):
+
+        engine = self._make_db_engine(echo=echo)
+        
+        connection = engine.connect()
+
+        return connection
